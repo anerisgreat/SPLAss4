@@ -72,74 +72,73 @@ def get_values_for_summary():
 def load_config_file_to_db(p_config_fname):
     with open(p_config_fname, 'r') as rfile:
         #Creating generator for split lines
-        split_liter = iter(l.rstrip().split(',') for l in rfile.readlines())
+        split_liter = iter(l.rstrip().split(',') for l in rfile)
 
-    #Get number of each type of entry from first line
-    nvaccines, nsuppliers, nclinics, nlogistics = map(int, next(split_liter))
+        nvaccines, nsuppliers, nclinics, nlogistics = map(int, next(split_liter))
 
-    #Load vaccines into database
-    for _ in range(nvaccines):
-        sid, sdate, ssupplier, squantity = next(split_liter)
-        dist_repo.vaccines.insert(
-            Vaccine(
-                int(sid),
-                dt.strptime(sdate, DT_FORMAT_STR),
-                int(ssupplier),
-                int(squantity)
-            ))
+        #Load vaccines into database
+        for _ in range(nvaccines):
+            sid, sdate, ssupplier, squantity = next(split_liter)
+            dist_repo.vaccines.insert(
+                Vaccine(
+                    int(sid),
+                    dt.strptime(sdate, DT_FORMAT_STR),
+                    int(ssupplier),
+                    int(squantity)
+                ))
 
-    #Load suppliers into database
-    for _ in range(nsuppliers):
-        sid, sname, slogistic = next(split_liter)
-        dist_repo.suppliers.insert(
-            Supplier(
-                int(sid),
-                sname,
-                int(slogistic)
-            ))
+        #Load suppliers into database
+        for _ in range(nsuppliers):
+            sid, sname, slogistic = next(split_liter)
+            dist_repo.suppliers.insert(
+                Supplier(
+                    int(sid),
+                    sname,
+                    int(slogistic)
+                ))
 
-    #Load clinics into database
-    for _ in range(nclinics):
-        sid, slocation, sdemand, slogistic = next(split_liter)
-        dist_repo.clinics.insert(
-            Clinic(
-                int(sid),
-                slocation,
-                int(sdemand),
-                int(slogistic)
-            ))
-    
-    #Load logistics into database
-    for _ in range(nlogistics):
-        sid, sname, scount_sent, scount_received = next(split_liter)
-        dist_repo.logistics.insert(
-            Logistic(
-                int(sid),
-                sname,
-                int(scount_sent),
-                int(scount_received)
-            ))
+        #Load clinics into database
+        for _ in range(nclinics):
+            sid, slocation, sdemand, slogistic = next(split_liter)
+            dist_repo.clinics.insert(
+                Clinic(
+                    int(sid),
+                    slocation,
+                    int(sdemand),
+                    int(slogistic)
+                ))
+
+        #Load logistics into database
+        for _ in range(nlogistics):
+            sid, sname, scount_sent, scount_received = next(split_liter)
+            dist_repo.logistics.insert(
+                Logistic(
+                    int(sid),
+                    sname,
+                    int(scount_sent),
+                    int(scount_received)
+                ))
 
 def execute_orders_with_summary(p_order_fname, p_summary_fname):
     with open(p_order_fname, 'r') as rfile:
-        split_liter = iter(l.rstrip().split(',') for l in rfile.readlines())
+        split_liter = iter(l.rstrip().split(',') for l in rfile)
 
-    with open(p_summary_fname, 'w') as ofile:
-        for splitl in split_liter:
-            #Check which type of order
-            if(len(splitl) == 2 or len(splitl) == 3):
-                #Send order
-                if len(splitl) == 2:
-                    process_order_send(splitl[0], int(splitl[1]))
-                #Receive order
-                else:
-                    process_order_receive(splitl[0],
-                                    int(splitl[1]),
-                                    dt.strptime(splitl[2], DT_FORMAT_STR))
+        with open(p_summary_fname, 'w') as ofile:
+            for splitl in split_liter:
+                #Check which type of order
+                if(len(splitl) == 2 or len(splitl) == 3):
+                    #Send order
+                    if len(splitl) == 2:
+                        process_order_send(splitl[0], int(splitl[1]))
+                    #Receive order
+                    else:
+                        process_order_receive(splitl[0],
+                                        int(splitl[1]),
+                                        dt.strptime(splitl[2], DT_FORMAT_STR))
 
-                #Write to summary
-                summary = get_values_for_summary()
-                ofile.write(f'{summary[0]},{summary[1]},{summary[2]},{summary[3]}\n')
+                    #Write to summary
+                    summary = get_values_for_summary()
+                    ofile.write(f'{summary[0]},{summary[1]},{summary[2]},{summary[3]}\n')
 
 def main(args):
     load_config_file_to_db(args[0])
