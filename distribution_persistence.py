@@ -1,6 +1,6 @@
 import sqlite3
 import atexit
- 
+
 #Vaccines
 class Vaccine(object):
     def __init__(self, p_id, p_date, p_supplier, p_quantity):
@@ -21,6 +21,9 @@ class _Vaccines:
         supplier    INTEGER REFERENCES supplier(id),
         quantity    INTEGER NOT NULL
         )""")
+
+    def drop_table(self):
+        self._conn.execute("DROP TABLE vaccines")
 
     def insert(self, p_vaccine):
         self._conn.execute("""
@@ -58,6 +61,9 @@ class _Suppliers:
         logistic    INTEGER REFERENCES logistics(id)
         )""")
 
+    def drop_table(self):
+        self._conn.execute("DROP TABLE suppliers")
+
     def insert(self, p_supplier):
         self._conn.execute("""
         INSERT INTO suppliers (id, name, logistic) VALUES (?, ?, ?)
@@ -89,6 +95,9 @@ class _Clinics:
         demand      INTEGER NOT NULL,
         logistic    INTEGER REFERENCES logistics(id)
         )""")
+
+    def drop_table(self):
+        self._conn.execute("DROP TABLE clinics")
 
     def insert(self, p_clinic):
         self._conn.execute("""
@@ -123,6 +132,9 @@ class _Logistics:
         count_received INTEGER NOT NULL
         )""")
 
+    def drop_table(self):
+        self._conn.execute("DROP TABLE logistics")
+
     def insert(self, p_logistic):
         self._conn.execute("""
         INSERT INTO logistics (id, name, count_sent, count_received) VALUES (?, ?, ?, ?)
@@ -152,22 +164,16 @@ class _Repository(object):
         self._conn.close()
 
     def create_tables(self):
-        try:
-            self.vaccines.create_table()
-        except(e):
-            pass
-        try:
-            self.suppliers.create_table()
-        except(e):
-            pass
-        try:
-            self.clinics.create_table()
-        except(e):
-            pass
-        try:
-            self.logistics.create_table()
-        except(e):
-            pass
+        self.vaccines.create_table()
+        self.suppliers.create_table()
+        self.clinics.create_table()
+        self.logistics.create_table()
+
+    def drop_tables(self):
+        self.vaccines.drop_table()
+        self.suppliers.drop_table()
+        self.clinics.drop_table()
+        self.logistics.drop_table()
 
 # the repository singleton
 dist_repo = _Repository()
