@@ -26,13 +26,22 @@ class _Vaccines:
         self._conn.execute("DROP TABLE vaccines")
 
     def insert(self, p_vaccine):
-        self._conn.execute("""
-               INSERT INTO vaccines (id, date, supplier, quantity)
-               VALUES (?, ?, ?, ?)""",
-                           [p_vaccine.id,
-                            p_vaccine.date,
-                            p_vaccine.supplier,
-                            p_vaccine.quantity])
+        self._conn.execute("""INSERT INTO vaccines
+            (id, date, supplier, quantity)
+            VALUES (?, ?, ?, ?)""",
+                [p_vaccine.id,
+                    p_vaccine.date,
+                    p_vaccine.supplier,
+                    p_vaccine.quantity])
+
+    def update(self, p_vaccine):
+        self._conn.execute("""UPDATE vaccines
+            SET date = ?, supplier = ?, quantity = ?
+            WHERE id = ?""",
+                [p_vaccine.date,
+                    p_vaccine.supplier,
+                    p_vaccine.quantity,
+                    p_vaccine.id])
 
     def find(self, p_vaccine_id):
         c = self._conn.cursor()
@@ -41,6 +50,30 @@ class _Vaccines:
         """, [p_vaccine_id])
 
         return Vaccine(*c.fetchone())
+
+    def get_maxid(self):
+        c = self._conn.cursor()
+        c.execute("SELECT MAX(id) from vaccines")
+        return c.fetchone()[0]
+
+    def get_all_by_date_generator(self):
+        c = self._conn.cursor()
+        c.execute("""
+            SELECT id, date, supplier, quantity FROM vaccines
+            ORDER BY date""")
+
+        tup = c.fetchone()
+        while(tup is not None):
+            yield Vaccine(*tup)
+            tup = c.fetchone()
+
+    def del_by_id(self, p_id):
+        self._conn.execute("DELETE FROM vaccines WHERE id = ?", [p_id])
+
+    def get_total_quantity(self):
+        c = self._conn.cursor()
+        c.execute("SELECT SUM(quantity) FROM vaccines")
+        return c.fetchone()[0]
 
 #Supplier
 class Supplier(object):
@@ -65,15 +98,31 @@ class _Suppliers:
         self._conn.execute("DROP TABLE suppliers")
 
     def insert(self, p_supplier):
-        self._conn.execute("""
-        INSERT INTO suppliers (id, name, logistic) VALUES (?, ?, ?)
-        """, [p_supplier.id, p_supplier.name, p_supplier.logistic])
+        self._conn.execute("""INSERT INTO suppliers
+            (id, name, logistic) VALUES (?, ?, ?)""",
+            [p_supplier.id, p_supplier.name, p_supplier.logistic])
+
+    def update(self, p_supplier):
+        self._conn.execute("""UPDATE suppliers
+            SET name = ?, logistic = ? WHERE id = ?""",
+            [p_supplier.name, p_supplier.logistic, p_supplier.id])
 
     def find(self, p_supplier_id):
         c = self._conn.cursor()
         c.execute("""SELECT id, name, logistic FROM suppliers WHERE id = ?""",
                   [p_supplier_id])
         return Supplier(*c.fetchone())
+
+    def find_by_name(self, p_supplier_name):
+        c = self._conn.cursor()
+        c.execute("""SELECT id, name, logistic FROM suppliers WHERE name = ?""",
+                  [p_supplier_name])
+        return Supplier(*c.fetchone())
+
+    def get_maxid(self):
+        c = self._conn.cursor()
+        c.execute("SELECT MAX(id) from suppliers")
+        return c.fetchone()[0]
 
 #Clinics
 class Clinic(object):
@@ -100,16 +149,45 @@ class _Clinics:
         self._conn.execute("DROP TABLE clinics")
 
     def insert(self, p_clinic):
-        self._conn.execute("""
-        INSERT INTO clinics (id, location, demand, logistic) VALUES (?, ?, ?, ?)
-        """, [p_clinic.id, p_clinic.location, p_clinic.demand, p_clinic.logistic])
+        self._conn.execute("""INSERT INTO clinics
+            (id, location, demand, logistic) VALUES (?, ?, ?, ?)""",
+            [p_clinic.id,
+             p_clinic.location,
+             p_clinic.demand,
+             p_clinic.logistic])
 
-    def find(self, p_supplier_id):
+    def update(self, p_clinic):
+        self._conn.execute("""UPDATE clinics
+            SET location = ?, demand = ?, logistic = ?
+            WHERE id = ?""",
+            [p_clinic.location,
+             p_clinic.demand,
+             p_clinic.logistic,
+             p_clinic.id])
+
+    def find(self, p_clinic_id):
         c = self._conn.cursor()
         c.execute(
         "SELECT id, location, demand, logistic FROM clinics WHERE id = ?",
-            [p_supplier_id])
+            [p_clinic_id])
         return Clinic(*c.fetchone())
+
+    def find_by_location(self, p_clinic_location):
+        c = self._conn.cursor()
+        c.execute(
+        "SELECT id, location, demand, logistic FROM clinics WHERE location = ?",
+            [p_clinic_location])
+        return Clinic(*c.fetchone())
+
+    def get_maxid(self):
+        c = self._conn.cursor()
+        c.execute("SELECT MAX(id) from clinics")
+        return c.fetchone()[0]
+
+    def get_total_demand(self):
+        c = self._conn.cursor()
+        c.execute("SELECT SUM(demand) FROM clinics")
+        return c.fetchone()[0]
 
 #Logistics
 class Logistic(object):
@@ -136,19 +214,38 @@ class _Logistics:
         self._conn.execute("DROP TABLE logistics")
 
     def insert(self, p_logistic):
-        self._conn.execute("""
-        INSERT INTO logistics (id, name, count_sent, count_received) VALUES (?, ?, ?, ?)
-        """, [p_logistic.id,
+        self._conn.execute("""INSERT INTO logistics
+            (id, name, count_sent, count_received) VALUES (?, ?, ?, ?)""",
+            [p_logistic.id,
               p_logistic.name,
               p_logistic.count_sent,
               p_logistic.count_received])
 
+    def update(self, p_logistic):
+        self._conn.execute("""UPDATE logistics
+        SET name = ?, count_sent = ?, count_received = ? WHERE id = ?""",
+                           [p_logistic.name,
+                            p_logistic.count_sent,
+                            p_logistic.count_received,
+                            p_logistic.id])
+
     def find(self, p_logistic_id):
         c = self._conn.cursor()
-        c.execute("SELECT id, name, count_sent, count_received FROM logistics WHERE id=?",
+        c.execute("""SELECT id, name, count_sent, count_received
+                    FROM logistics
+                    WHERE id=?""",
                   [p_logistic_id])
         return Logistic(*c.fetchone())
 
+    def get_maxid(self):
+        c = self._conn.cursor()
+        c.execute("SELECT MAX(id) from logistics")
+        return c.fetchone()[0]
+
+    def get_total_sent_received(self):
+        c = self._conn.cursor()
+        c.execute("SELECT SUM(count_sent), SUM(count_received) FROM logistics")
+        return c.fetchone()
 
 #The Repository
 class _Repository(object):
