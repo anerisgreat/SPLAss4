@@ -141,6 +141,7 @@ def execute_orders_with_summary(p_order_fname, p_summary_fname):
                     ofile.write(f'{summary[0]},{summary[1]},{summary[2]},{summary[3]}\n')
 
 def main(args):
+    dist_repo.create_tables()
     load_config_file_to_db(args[0])
     summary_tuples = execute_orders_with_summary(args[1], args[2])
 
